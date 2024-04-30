@@ -2,8 +2,6 @@ from flask import Flask
 from flask_restx import Api, Resource, fields
 from despliegue_carro import predict_price
 from flask_cors import CORS
-import pandas as pd
-import joblib
 
 app = Flask(__name__)
 CORS(app)
@@ -34,15 +32,11 @@ class CarPriceApi(Resource):
     @api.marshal_with(resource_fields)
     def get(self):
         args = parser.parse_args()
+        
+        # Llamamos a predict_price pasando un diccionario con los atributos del carro
+        prediction = predict_price(args)
 
-        # Crear un DataFrame a partir de los argumentos
-        data = pd.DataFrame([args], columns=args.keys())
-
-        try:
-            prediction = predict_price(data, 0)  # '0' porque solo hay una fila en el DataFrame
-            return {"Predicción": prediction[0]}, 200
-        except Exception as e:
-            api.abort(404, f"Error: {str(e)}")
+        return {"Predicción": prediction[0]}, 200
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
